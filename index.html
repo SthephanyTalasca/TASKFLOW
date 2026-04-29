@@ -6,7 +6,7 @@
 <title>TaskFlow — Meu Espaço</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
   :root {
@@ -29,8 +29,8 @@
     --hover-shadow: 0 8px 24px rgba(13,13,20,0.10), 0 0 1px rgba(13,13,20,0.08);
   }
   * { box-sizing: border-box; }
-  body { font-family: 'DM Sans', sans-serif; background: #f1f5f9; color: var(--ink); min-height: 100vh; }
-  h1,h2,h3,.font-display { font-family: 'Syne', sans-serif; }
+  body { font-family: 'Poppins', sans-serif; background: #f1f5f9; color: var(--ink); min-height: 100vh; }
+  h1,h2,h3,.font-display { font-family: 'Poppins', sans-serif; }
 
   /* ── Glass card ── */
   .glass { background: white; border: 1px solid var(--border); border-radius: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
@@ -46,7 +46,7 @@
   .meta-card:hover { border-color: var(--accent); box-shadow: var(--hover-shadow); }
 
   /* ── Tabs ── */
-  .tab-btn { transition: all .2s; font-family: 'Syne', sans-serif; font-weight: 700; }
+  .tab-btn { transition: all .2s; font-family: 'Poppins', sans-serif; font-weight: 700; }
   .tab-btn.active { background: var(--ink); color: white; }
 
   /* ── Category badges ── */
@@ -64,15 +64,15 @@
   .prio-baixa { color: #6b7280; }
 
   /* ── Inputs ── */
-  .field { width: 100%; border: 1.5px solid var(--border); border-radius: 0.75rem; padding: 10px 14px; font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; transition: border .15s, box-shadow .15s; background: white; }
+  .field { width: 100%; border: 1.5px solid var(--border); border-radius: 0.75rem; padding: 10px 14px; font-size: 14px; font-family: 'Poppins', sans-serif; outline: none; transition: border .15s, box-shadow .15s; background: white; }
   .field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,99,255,0.12); }
   select.field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b8ba0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 1.1em; padding-right: 32px; }
 
   /* ── Buttons ── */
-  .btn-primary { background: var(--accent); color: white; border: none; border-radius: 0.75rem; padding: 10px 20px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 6px; }
+  .btn-primary { background: var(--accent); color: white; border: none; border-radius: 0.75rem; padding: 10px 20px; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 6px; }
   .btn-primary:hover { background: #5b53e0; transform: translateY(-1px); }
   .btn-primary:active { transform: scale(0.97); }
-  .btn-ghost { background: transparent; border: 1.5px solid var(--border); border-radius: 0.75rem; padding: 9px 18px; font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; color: var(--muted); transition: all .15s; }
+  .btn-ghost { background: transparent; border: 1.5px solid var(--border); border-radius: 0.75rem; padding: 9px 18px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; color: var(--muted); transition: all .15s; }
   .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
   /* ── Modal ── */
@@ -134,7 +134,7 @@
     <p style="color:var(--muted);font-size:13px;margin-bottom:32px;text-transform:uppercase;letter-spacing:.1em;font-size:11px;">Meu espaço de produtividade</p>
     <p id="login-error" class="hidden" style="background:rgba(239,68,68,0.1);color:#ef4444;border-radius:0.75rem;padding:12px;font-size:13px;margin-bottom:16px;text-align:center;"></p>
     <button onclick="loginWithGoogle()" id="login-btn"
-      style="width:100%;display:flex;align-items:center;justify-content:center;gap:12px;background:white;border:1px solid #e2e8f0;color:#334155;border-radius:0.75rem;padding:14px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;"
+      style="width:100%;display:flex;align-items:center;justify-content:center;gap:12px;background:white;border:1px solid #e2e8f0;color:#334155;border-radius:0.75rem;padding:14px;font-family:'Poppins',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;"
       onmouseover="this.style.borderColor='#a5b4fc';this.style.background='#f8f7ff';" onmouseout="this.style.borderColor='#e2e8f0';this.style.background='white';">
       <svg width="20" height="20" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.31z"/></svg>
       Entrar com Google
@@ -161,7 +161,7 @@
       <div style="display:flex;align-items:center;gap:12px;">
         <img id="user-avatar" src="" style="display:none;width:32px;height:32px;border-radius:50%;border:2px solid rgba(108,99,255,0.6);">
         <span id="user-name" style="font-size:13px;color:rgba(165,180,252,0.8);display:none;"></span>
-        <button onclick="logout()" style="font-size:11px;color:rgba(165,180,252,0.8);border:1px solid rgba(108,99,255,0.3);background:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;transition:all .2s;" onmouseover="this.style.color='white';this.style.borderColor='rgba(108,99,255,0.8)';" onmouseout="this.style.color='rgba(165,180,252,0.8)';this.style.borderColor='rgba(108,99,255,0.3)';">Sair</button>
+        <button onclick="logout()" style="font-size:11px;color:rgba(165,180,252,0.8);border:1px solid rgba(108,99,255,0.3);background:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;transition:all .2s;" onmouseover="this.style.color='white';this.style.borderColor='rgba(108,99,255,0.8)';" onmouseout="this.style.color='rgba(165,180,252,0.8)';this.style.borderColor='rgba(108,99,255,0.3)';">Sair</button>
       </div>
     </div>
   </nav>
@@ -198,7 +198,7 @@
             <option value="media">🟡 Média</option>
             <option value="baixa">⚪ Baixa</option>
           </select>
-          <button onclick="openProjectModal()" style="padding:10px 16px;border:1px solid var(--border);border-radius:0.75rem;background:white;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;color:#64748b;display:flex;align-items:center;gap:6px;transition:all .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';" onmouseout="this.style.borderColor='var(--border)';this.style.color='#64748b';">
+          <button onclick="openProjectModal()" style="padding:10px 16px;border:1px solid var(--border);border-radius:0.75rem;background:white;font-family:'Poppins',sans-serif;font-weight:700;font-size:13px;cursor:pointer;color:#64748b;display:flex;align-items:center;gap:6px;transition:all .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';" onmouseout="this.style.borderColor='var(--border)';this.style.color='#64748b';">
             <i data-lucide="folder-plus" style="width:14px;height:14px;"></i> Projeto
           </button>
           <button onclick="openTaskModal()" class="btn-primary">
@@ -558,9 +558,9 @@ window.selectColor = function(color) {
 function renderProjectTabs() {
   const tabs = document.getElementById('project-tabs');
   tabs.innerHTML = `
-    <button style="padding:6px 14px;border-radius:99px;border:1.5px solid ${activeProject==='all'?'var(--accent)':'var(--border)'};background:${activeProject==='all'?'var(--accent-soft)':'white'};color:${activeProject==='all'?'var(--accent)':'var(--muted)'};font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;" onclick="filterByProject('all')">Todos</button>
+    <button style="padding:6px 14px;border-radius:99px;border:1.5px solid ${activeProject==='all'?'var(--accent)':'var(--border)'};background:${activeProject==='all'?'var(--accent-soft)':'white'};color:${activeProject==='all'?'var(--accent)':'var(--muted)'};font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;" onclick="filterByProject('all')">Todos</button>
     ${allProjects.map(p => `
-      <button style="padding:6px 14px;border-radius:99px;border:1.5px solid ${activeProject===p.id?p.cor||'var(--accent)':'var(--border)'};background:${activeProject===p.id?(p.cor||'#6c63ff')+'18':'white'};color:${activeProject===p.id?p.cor||'var(--accent)':'var(--muted)'};font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;" onclick="filterByProject('${p.id}')">
+      <button style="padding:6px 14px;border-radius:99px;border:1.5px solid ${activeProject===p.id?p.cor||'var(--accent)':'var(--border)'};background:${activeProject===p.id?(p.cor||'#6c63ff')+'18':'white'};color:${activeProject===p.id?p.cor||'var(--accent)':'var(--muted)'};font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;" onclick="filterByProject('${p.id}')">
         <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${p.cor||'#6c63ff'};"></span>
         ${esc(p.nome)}
         <span onclick="event.stopPropagation();deleteProject('${p.id}')" style="margin-left:2px;font-size:10px;opacity:.5;cursor:pointer;" title="Excluir">✕</span>
@@ -658,7 +658,7 @@ function renderKanban(tasks) {
         <div class="kanban-col" style="display:flex;flex-direction:column;gap:10px;min-height:60px;"
           ondragover="kanbanDragOver(event)" ondragleave="kanbanDragLeave(event)" ondrop="kanbanDrop(event,'${col.id}')">
           ${colTasks.map(t => renderTaskCard(t)).join('')}
-          <button onclick="openTaskModalCol('${col.id}')" style="width:100%;padding:8px;border:1.5px dashed #cbd5e1;border-radius:10px;background:none;font-size:12px;color:#94a3b8;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;"
+          <button onclick="openTaskModalCol('${col.id}')" style="width:100%;padding:8px;border:1.5px dashed #cbd5e1;border-radius:10px;background:none;font-size:12px;color:#94a3b8;cursor:pointer;transition:all .15s;font-family:'Poppins',sans-serif;"
             onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';"
             onmouseout="this.style.borderColor='#cbd5e1';this.style.color='#94a3b8';">+ Adicionar</button>
         </div>
@@ -785,7 +785,7 @@ function renderMetas() {
   if (!filtered.length) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--muted);">
       <div style="font-size:40px;margin-bottom:12px;">🎯</div>
-      <p style="font-weight:600;font-family:'Syne',sans-serif;">Nenhuma meta ${PERIODO_LABEL[activeMetaTab].toLowerCase()} ainda</p>
+      <p style="font-weight:600;font-family:'Poppins',sans-serif;">Nenhuma meta ${PERIODO_LABEL[activeMetaTab].toLowerCase()} ainda</p>
       <p style="font-size:13px;margin-top:4px;">Cria a sua primeira meta!</p>
     </div>`;
     return;
@@ -797,7 +797,7 @@ function renderMetas() {
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;">
         <div style="flex:1;">
           <span class="badge cat-${m.categoria||'outros'}" style="margin-bottom:6px;display:inline-flex;">${CAT_ICONS[m.categoria||'outros']} ${CAT_LABELS[m.categoria||'outros']}</span>
-          <p style="font-weight:700;font-size:14px;line-height:1.3;font-family:'Syne',sans-serif;">${esc(m.titulo)}</p>
+          <p style="font-weight:700;font-size:14px;line-height:1.3;font-family:'Poppins',sans-serif;">${esc(m.titulo)}</p>
         </div>
         <div style="display:flex;gap:4px;flex-shrink:0;">
           <button onclick="openMetaProgressModal('${m.id}')" style="padding:6px;border:1px solid var(--border);background:white;border-radius:8px;cursor:pointer;transition:.15s;" onmouseover="this.style.borderColor='var(--accent)';" onmouseout="this.style.borderColor='var(--border)';" title="Atualizar progresso"><i data-lucide="trending-up" style="width:13px;height:13px;color:var(--accent);"></i></button>
@@ -807,7 +807,7 @@ function renderMetas() {
       </div>
       ${m.descricao?`<p style="font-size:12px;color:var(--muted);margin-bottom:12px;">${esc(m.descricao)}</p>`:''}
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:${barColor};">${pct}%</span>
+        <span style="font-size:22px;font-weight:800;font-family:'Poppins',sans-serif;color:${barColor};">${pct}%</span>
         <span style="font-size:12px;color:var(--muted);">${m.atual||0} / ${m.total} ${esc(m.unidade||'')}</span>
       </div>
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${barColor};"></div></div>
@@ -913,7 +913,7 @@ function renderCharts() {
   charts.status = new Chart(document.getElementById('chart-status'), {
     type: 'doughnut',
     data: { labels: COLS.map(c => c.icon+' '+c.label), datasets: [{ data: statusCounts, backgroundColor: ['#8b8ba020','#3b82f620','#f59e0b20','#10b98120'], borderColor: ['#8b8ba0','#3b82f6','#f59e0b','#10b981'], borderWidth: 2 }] },
-    options: { responsive:true, plugins:{ legend:{ position:'bottom', labels:{ font:{family:'DM Sans',size:11} } } } }
+    options: { responsive:true, plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Poppins',size:11} } } } }
   });
 
   const cats = ['trabalho','pessoal','saúde','estudos','outros'];
@@ -951,7 +951,7 @@ function renderCharts() {
   charts.proj = new Chart(document.getElementById('chart-proj'), {
     type: 'doughnut',
     data: { labels: allProjects.map(p=>p.nome), datasets: [{ data: projData.length?projData:[1], backgroundColor: allProjects.map(p=>(p.cor||'#6c63ff')+'40'), borderColor: allProjects.map(p=>p.cor||'#6c63ff'), borderWidth: 2 }] },
-    options: { responsive:true, plugins:{ legend:{ position:'bottom', labels:{ font:{family:'DM Sans',size:11} } } } }
+    options: { responsive:true, plugins:{ legend:{ position:'bottom', labels:{ font:{family:'Poppins',size:11} } } } }
   });
 }
 
