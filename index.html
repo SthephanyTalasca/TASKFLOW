@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskFlow — Meu Espaço</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root {
+    --ink: #0d0d14;
+    --surface: #ffffff;
+    --border: #e8e8f0;
+    --muted: #8b8ba0;
+    --accent: #6c63ff;
+    --accent-soft: #ede9ff;
+    --work: #3b82f6;
+    --work-soft: #eff6ff;
+    --personal: #f59e0b;
+    --personal-soft: #fffbeb;
+    --health: #10b981;
+    --health-soft: #ecfdf5;
+    --study: #ec4899;
+    --study-soft: #fdf2f8;
+    --danger: #ef4444;
+    --card-shadow: 0 2px 8px rgba(13,13,20,0.06), 0 0 1px rgba(13,13,20,0.08);
+    --hover-shadow: 0 8px 24px rgba(13,13,20,0.10), 0 0 1px rgba(13,13,20,0.08);
+  }
+  * { box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: #f4f3f9; color: var(--ink); min-height: 100vh; }
+  h1,h2,h3,.font-display { font-family: 'Syne', sans-serif; }
+
+  /* ── Sidebar ── */
+  #sidebar { width: 260px; min-height: 100vh; background: var(--ink); flex-shrink: 0; display: flex; flex-direction: column; position: fixed; left: 0; top: 0; bottom: 0; z-index: 30; transition: transform .3s; }
+  #main-content { margin-left: 260px; min-height: 100vh; }
+  @media (max-width: 768px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    #main-content { margin-left: 0; }
+  }
+
+  /* ── Cards ── */
+  .card { background: white; border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--card-shadow); transition: all .2s; }
+  .card:hover { box-shadow: var(--hover-shadow); }
+  .task-card { background: white; border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--card-shadow); transition: all .2s; cursor: grab; }
+  .task-card:hover { box-shadow: var(--hover-shadow); transform: translateY(-1px); }
+  .task-card.dragging { opacity: 0.4; transform: scale(0.97); cursor: grabbing; }
+  .kanban-col.drag-over { outline: 2px dashed var(--accent); outline-offset: 3px; border-radius: 12px; background: var(--accent-soft); }
+
+  /* ── Tabs ── */
+  .tab-pill { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 99px; cursor: pointer; transition: all .15s; color: var(--muted); }
+  .tab-pill.active { background: var(--ink); color: white; }
+
+  /* ── Category badges ── */
+  .cat-trabalho { background: var(--work-soft); color: var(--work); }
+  .cat-pessoal { background: var(--personal-soft); color: #b45309; }
+  .cat-saúde { background: var(--health-soft); color: #059669; }
+  .cat-estudos { background: var(--study-soft); color: #be185d; }
+  .cat-outros { background: #f1f0fb; color: #6c63ff; }
+
+  /* ── Tipo badges ── */
+  .tipo-bug { background: #fee2e2; color: #dc2626; }
+  .tipo-task { background: #e0e7ff; color: #4338ca; }
+  .tipo-feature { background: #f3e8ff; color: #7c3aed; }
+  .tipo-meta { background: #d1fae5; color: #065f46; }
+
+  /* ── Priority ── */
+  .prio-alta { color: #dc2626; }
+  .prio-media { color: #d97706; }
+  .prio-baixa { color: #6b7280; }
+
+  /* ── Inputs ── */
+  .field { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none; transition: border .15s, box-shadow .15s; background: white; }
+  .field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,99,255,0.12); }
+  select.field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b8ba0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; background-size: 1.1em; padding-right: 32px; }
+
+  /* ── Buttons ── */
+  .btn-primary { background: var(--accent); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 6px; }
+  .btn-primary:hover { background: #5b53e0; transform: translateY(-1px); }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-ghost { background: transparent; border: 1.5px solid var(--border); border-radius: 10px; padding: 9px 18px; font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; color: var(--muted); transition: all .15s; }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Modal ── */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(13,13,20,0.5); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .modal-backdrop.open { display: flex; }
+  .modal-box { background: white; border-radius: 20px; padding: 32px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; animation: modalIn .18s ease; box-shadow: 0 24px 48px rgba(13,13,20,0.2); }
+  @keyframes modalIn { from { opacity:0; transform:scale(.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+
+  /* ── Progress bar ── */
+  .progress-bar { height: 6px; background: #e8e8f0; border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; transition: width .4s ease; }
+
+  /* ── Spinner ── */
+  .spinner { width: 28px; height: 28px; border: 3px solid #e8e8f0; border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Sidebar project pills ── */
+  .proj-pill { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: all .15s; color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 500; }
+  .proj-pill:hover { background: rgba(255,255,255,0.08); color: white; }
+  .proj-pill.active { background: rgba(108,99,255,0.3); color: white; }
+  .proj-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── Meta card ── */
+  .meta-card { background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 20px; transition: all .2s; }
+  .meta-card:hover { border-color: var(--accent); box-shadow: var(--hover-shadow); }
+
+  /* ── Chart container ── */
+  .chart-wrap { background: white; border-radius: 16px; border: 1px solid var(--border); padding: 24px; box-shadow: var(--card-shadow); }
+
+  /* ── Stat card ── */
+  .stat-card { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 20px; box-shadow: var(--card-shadow); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d1d1e0; border-radius: 99px; }
+
+  /* ── Login ── */
+  #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0d0d14 0%, #1a1a2e 50%, #16213e 100%); }
+  .login-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 48px 40px; width: 100%; max-width: 380px; backdrop-filter: blur(20px); }
+  .login-glow { position: absolute; width: 300px; height: 300px; border-radius: 50%; background: radial-gradient(circle, rgba(108,99,255,0.3) 0%, transparent 70%); pointer-events: none; }
+
+  /* ── Filter chip ── */
+  .filter-chip { padding: 5px 12px; border-radius: 99px; font-size: 12px; font-weight: 600; border: 1.5px solid var(--border); cursor: pointer; transition: all .15s; color: var(--muted); }
+  .filter-chip.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+
+  /* ── Kanban column ── */
+  .kanban-col-wrap { min-width: 270px; max-width: 280px; flex-shrink: 0; }
+  #kanban-scroll { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 16px; }
+  #kanban-scroll::-webkit-scrollbar { height: 5px; }
+  #kanban-scroll::-webkit-scrollbar-thumb { background: #d1d1e0; border-radius: 99px; }
+
+  /* ── Checklist ── */
+  .check-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .check-item:last-child { border-bottom: none; }
+  input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent); }
+
+  /* ── Overdue ── */
+  .overdue { border-left: 3px solid var(--danger) !important; }
+  .badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div style="position:absolute; top:30%; left:25%;" class="login-glow"></div>
+  <div style="position:absolute; top:50%; right:20%;" class="login-glow" style="opacity:0.5"></div>
+  <div class="login-card relative">
+    <div class="text-center mb-8">
+      <div style="width:56px;height:56px;background:var(--accent);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;" >
+        <i data-lucide="zap" style="color:white;width:28px;height:28px;"></i>
+      </div>
+      <h1 class="font-display" style="color:white;font-size:26px;font-weight:800;margin-bottom:4px;">TaskFlow</h1>
+      <p style="color:rgba(255,255,255,0.4);font-size:13px;">Meu espaço de produtividade</p>
+    </div>
+    <p id="login-error" class="hidden" style="background:rgba(239,68,68,0.15);color:#fca5a5;border-radius:10px;padding:12px;font-size:13px;margin-bottom:16px;text-align:center;"></p>
+    <button onclick="loginWithGoogle()" id="login-btn"
+      style="width:100%;display:flex;align-items:center;justify-content:center;gap:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:white;border-radius:12px;padding:14px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;"
+      onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'">
+      <svg width="20" height="20" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 01-7.18-2.54H1.83v2.07A8 8 0 008.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 010-3.04V5.41H1.83a8 8 0 000 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.49a4.77 4.77 0 014.48-3.31z"/></svg>
+      Entrar com Google
+    </button>
+    <p style="color:rgba(255,255,255,0.2);font-size:11px;text-align:center;margin-top:20px;">Seus dados ficam só com você ✨</p>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app-screen" class="hidden flex">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div style="padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.07);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i data-lucide="zap" style="color:white;width:18px;height:18px;"></i>
+        </div>
+        <div>
+          <div class="font-display" style="color:white;font-size:16px;font-weight:800;line-height:1;">TaskFlow</div>
+          <div style="color:rgba(255,255,255,0.35);font-size:10px;margin-top:2px;">Meu espaço</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User -->
+    <div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:10px;">
+      <img id="sb-avatar" src="" style="width:34px;height:34px;border-radius:50%;border:2px solid rgba(108,99,255,0.5);display:none;">
+      <div>
+        <div id="sb-name" style="color:white;font-size:13px;font-weight:600;"></div>
+        <div id="sb-email" style="color:rgba(255,255,255,0.35);font-size:11px;"></div>
+      </div>
+    </div>
+
+    <!-- Nav principal -->
+    <nav style="padding:16px 12px;flex:1;overflow-y:auto;">
+      <div style="color:rgba(255,255,255,0.25);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding-left:4px;">Menu</div>
+      <div class="proj-pill active" id="nav-tasks" onclick="switchView('tasks')">
+        <i data-lucide="kanban" style="width:16px;height:16px;"></i> Tarefas
+      </div>
+      <div class="proj-pill" id="nav-metas" onclick="switchView('metas')">
+        <i data-lucide="target" style="width:16px;height:16px;"></i> Metas
+      </div>
+      <div class="proj-pill" id="nav-graficos" onclick="switchView('graficos')">
+        <i data-lucide="bar-chart-2" style="width:16px;height:16px;"></i> Gráficos
+      </div>
+
+      <!-- Projetos -->
+      <div style="margin-top:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:0 4px;">
+          <span style="color:rgba(255,255,255,0.25);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;">Projetos</span>
+          <button onclick="openProjectModal()" style="background:none;border:none;color:rgba(255,255,255,0.35);cursor:pointer;padding:2px;" title="Novo projeto">
+            <i data-lucide="plus" style="width:14px;height:14px;"></i>
+          </button>
+        </div>
+        <div id="project-nav-list">
+          <div class="proj-pill" id="proj-all" onclick="filterByProject('all')">
+            <span class="proj-dot" style="background:#6c63ff;"></span> Todos os projetos
+          </div>
+        </div>
+      </div>
+
+      <!-- Categorias filter -->
+      <div style="margin-top:24px;">
+        <div style="color:rgba(255,255,255,0.25);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding-left:4px;">Categorias</div>
+        <div id="cat-nav-list">
+          <div class="proj-pill" id="cat-all" onclick="filterByCat('all')">
+            <i data-lucide="grid" style="width:14px;height:14px;"></i> Todas
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div style="padding:16px 12px;border-top:1px solid rgba(255,255,255,0.07);">
+      <button onclick="logout()" class="proj-pill" style="width:100%;justify-content:center;">
+        <i data-lucide="log-out" style="width:14px;height:14px;"></i> Sair
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main-content" style="padding:32px 32px 80px;">
+
+    <!-- Header mobile -->
+    <div class="flex items-center justify-between mb-6 md:hidden">
+      <button onclick="document.getElementById('sidebar').classList.toggle('open')" style="padding:8px;background:white;border:1px solid var(--border);border-radius:10px;">
+        <i data-lucide="menu" style="width:18px;height:18px;"></i>
+      </button>
+    </div>
+
+    <!-- ──────── VIEW: TAREFAS ──────── -->
+    <div id="view-tasks">
+      <!-- Filtros & ações -->
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:24px;">
+        <div style="flex:1;">
+          <h2 class="font-display" style="font-size:24px;font-weight:800;margin:0 0 4px;">
+            <span id="task-view-title">Todas as Tarefas</span>
+          </h2>
+          <p style="color:var(--muted);font-size:13px;" id="task-view-sub">Gerencie e organize suas entregas</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <!-- Filtro categoria (chips) -->
+          <div id="cat-filter-chips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+          <!-- Filtro prioridade -->
+          <select id="prio-filter" onchange="applyFilters()" class="field" style="width:auto;font-size:13px;padding:8px 28px 8px 12px;">
+            <option value="">Todas as prioridades</option>
+            <option value="alta">🔴 Alta</option>
+            <option value="media">🟡 Média</option>
+            <option value="baixa">⚪ Baixa</option>
+          </select>
+          <button onclick="openTaskModal()" class="btn-primary">
+            <i data-lucide="plus" style="width:16px;height:16px;"></i> Nova tarefa
+          </button>
+        </div>
+      </div>
+
+      <!-- Abas de projeto -->
+      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center;" id="project-tabs">
+        <!-- gerado dinamicamente -->
+      </div>
+
+      <!-- Kanban -->
+      <div id="tasks-loading" style="display:flex;justify-content:center;padding:60px 0;"><div class="spinner"></div></div>
+      <div id="kanban-scroll" class="hidden"></div>
+    </div>
+
+    <!-- ──────── VIEW: METAS ──────── -->
+    <div id="view-metas" class="hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h2 class="font-display" style="font-size:24px;font-weight:800;margin:0 0 4px;">Minhas Metas</h2>
+          <p style="color:var(--muted);font-size:13px;">Acompanhe seu progresso</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <div style="display:flex;gap:6px;background:white;border:1px solid var(--border);border-radius:12px;padding:4px;">
+            <button class="tab-pill active" id="mt-semana" onclick="switchMetaTab('semana')">Semana</button>
+            <button class="tab-pill" id="mt-mes" onclick="switchMetaTab('mes')">Mês</button>
+            <button class="tab-pill" id="mt-ano" onclick="switchMetaTab('ano')">Ano</button>
+          </div>
+          <button onclick="openMetaModal()" class="btn-primary">
+            <i data-lucide="plus" style="width:16px;height:16px;"></i> Nova meta
+          </button>
+        </div>
+      </div>
+
+      <div id="metas-loading" style="display:flex;justify-content:center;padding:60px 0;"><div class="spinner"></div></div>
+      <div id="metas-grid" class="hidden" style="display:none;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;"></div>
+    </div>
+
+    <!-- ──────── VIEW: GRÁFICOS ──────── -->
+    <div id="view-graficos" class="hidden">
+      <div style="margin-bottom:24px;">
+        <h2 class="font-display" style="font-size:24px;font-weight:800;margin:0 0 4px;">Dashboard de Entregas</h2>
+        <p style="color:var(--muted);font-size:13px;">Visualize sua produtividade</p>
+      </div>
+      <!-- Stat cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px;" id="stat-cards"></div>
+      <!-- Charts -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;" id="charts-area">
+        <div class="chart-wrap">
+          <div class="font-display" style="font-size:15px;font-weight:700;margin-bottom:16px;">Tarefas por Status</div>
+          <canvas id="chart-status" height="200"></canvas>
+        </div>
+        <div class="chart-wrap">
+          <div class="font-display" style="font-size:15px;font-weight:700;margin-bottom:16px;">Por Categoria</div>
+          <canvas id="chart-cat" height="200"></canvas>
+        </div>
+        <div class="chart-wrap" style="grid-column:1/-1;">
+          <div class="font-display" style="font-size:15px;font-weight:700;margin-bottom:16px;">Tarefas concluídas por mês</div>
+          <canvas id="chart-timeline" height="100"></canvas>
+        </div>
+        <div class="chart-wrap">
+          <div class="font-display" style="font-size:15px;font-weight:700;margin-bottom:16px;">Tempo médio por etapa (dias)</div>
+          <canvas id="chart-tempo" height="200"></canvas>
+        </div>
+        <div class="chart-wrap">
+          <div class="font-display" style="font-size:15px;font-weight:700;margin-bottom:16px;">Tarefas por Projeto</div>
+          <canvas id="chart-proj" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══ MODAL: TASK ══ -->
+<div id="task-modal" class="modal-backdrop">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+      <h3 class="font-display" id="task-modal-title" style="font-size:18px;font-weight:800;">Nova Tarefa</h3>
+      <button onclick="closeTaskModal()" style="padding:6px;border:none;background:none;cursor:pointer;color:var(--muted);"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Título *</label>
+        <input id="t-titulo" class="field" placeholder="O que precisa ser feito?">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Projeto</label>
+          <select id="t-projeto" class="field">
+            <option value="">Nenhum</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Categoria</label>
+          <select id="t-categoria" class="field">
+            <option value="trabalho">💼 Trabalho</option>
+            <option value="pessoal">🌟 Pessoal</option>
+            <option value="saúde">💚 Saúde</option>
+            <option value="estudos">📚 Estudos</option>
+            <option value="outros">🔮 Outros</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Tipo</label>
+          <select id="t-tipo" class="field">
+            <option value="task">📋 Tarefa</option>
+            <option value="bug">🐛 Bug / Problema</option>
+            <option value="feature">✨ Melhoria</option>
+            <option value="meta">🎯 Meta</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Prioridade</label>
+          <select id="t-prioridade" class="field">
+            <option value="alta">🔴 Alta</option>
+            <option value="media">🟡 Média</option>
+            <option value="baixa">⚪ Baixa</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Status</label>
+          <select id="t-status" class="field">
+            <option value="todo">📥 A Fazer</option>
+            <option value="doing">🔨 Fazendo</option>
+            <option value="review">👀 Em Revisão</option>
+            <option value="done">✅ Concluído</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Prazo</label>
+          <input id="t-prazo" type="date" class="field">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Responsável</label>
+        <input id="t-responsavel" class="field" placeholder="Quem vai fazer?">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Descrição</label>
+        <textarea id="t-desc" class="field" rows="3" placeholder="Detalhes, contexto, links..." style="resize:none;"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px;">
+      <button onclick="closeTaskModal()" class="btn-ghost">Cancelar</button>
+      <button onclick="saveTask()" id="save-task-btn" class="btn-primary">
+        <span id="save-task-txt">Salvar</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: PROJETO ══ -->
+<div id="project-modal" class="modal-backdrop">
+  <div class="modal-box" style="max-width:420px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+      <h3 class="font-display" id="proj-modal-title" style="font-size:18px;font-weight:800;">Novo Projeto</h3>
+      <button onclick="closeProjectModal()" style="padding:6px;border:none;background:none;cursor:pointer;color:var(--muted);"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Nome do Projeto *</label>
+        <input id="p-nome" class="field" placeholder="Ex: Lançamento App, Rotina Saúde...">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Cor</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;" id="color-picker">
+          <button onclick="selectColor('#6c63ff')" data-color="#6c63ff" class="color-btn active" style="width:32px;height:32px;border-radius:50%;background:#6c63ff;border:3px solid #6c63ff;cursor:pointer;outline:none;"></button>
+          <button onclick="selectColor('#3b82f6')" data-color="#3b82f6" class="color-btn" style="width:32px;height:32px;border-radius:50%;background:#3b82f6;border:3px solid transparent;cursor:pointer;outline:none;"></button>
+          <button onclick="selectColor('#10b981')" data-color="#10b981" class="color-btn" style="width:32px;height:32px;border-radius:50%;background:#10b981;border:3px solid transparent;cursor:pointer;outline:none;"></button>
+          <button onclick="selectColor('#f59e0b')" data-color="#f59e0b" class="color-btn" style="width:32px;height:32px;border-radius:50%;background:#f59e0b;border:3px solid transparent;cursor:pointer;outline:none;"></button>
+          <button onclick="selectColor('#ec4899')" data-color="#ec4899" class="color-btn" style="width:32px;height:32px;border-radius:50%;background:#ec4899;border:3px solid transparent;cursor:pointer;outline:none;"></button>
+          <button onclick="selectColor('#ef4444')" data-color="#ef4444" class="color-btn" style="width:32px;height:32px;border-radius:50%;background:#ef4444;border:3px solid transparent;cursor:pointer;outline:none;"></button>
+          <button onclick="selectColor('#0ea5e9')" data-color="#0ea5e9" class="color-btn" style="width:32px;height:32px;border-radius:50%;background:#0ea5e9;border:3px solid transparent;cursor:pointer;outline:none;"></button>
+          <button onclick="selectColor('#8b5cf6')" data-color="#8b5cf6" class="color-btn" style="width:32px;height:32px;border-radius:50%;background:#8b5cf6;border:3px solid transparent;cursor:pointer;outline:none;"></button>
+        </div>
+        <input type="hidden" id="p-cor" value="#6c63ff">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Descrição</label>
+        <input id="p-desc" class="field" placeholder="Sobre o que é esse projeto?">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Categoria padrão</label>
+        <select id="p-cat" class="field">
+          <option value="trabalho">💼 Trabalho</option>
+          <option value="pessoal">🌟 Pessoal</option>
+          <option value="saúde">💚 Saúde</option>
+          <option value="estudos">📚 Estudos</option>
+          <option value="outros">🔮 Outros</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px;">
+      <button onclick="closeProjectModal()" class="btn-ghost">Cancelar</button>
+      <button onclick="saveProject()" id="save-proj-btn" class="btn-primary">
+        <span id="save-proj-txt">Criar Projeto</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: META ══ -->
+<div id="meta-modal" class="modal-backdrop">
+  <div class="modal-box" style="max-width:460px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+      <h3 class="font-display" id="meta-modal-title" style="font-size:18px;font-weight:800;">Nova Meta</h3>
+      <button onclick="closeMetaModal()" style="padding:6px;border:none;background:none;cursor:pointer;color:var(--muted);"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Título da Meta *</label>
+        <input id="m-titulo" class="field" placeholder="Ex: Ler 2 livros, Academia 3x...">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Período</label>
+          <select id="m-periodo" class="field">
+            <option value="semana">📅 Semanal</option>
+            <option value="mes">📆 Mensal</option>
+            <option value="ano">🗓️ Anual</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Categoria</label>
+          <select id="m-categoria" class="field">
+            <option value="trabalho">💼 Trabalho</option>
+            <option value="pessoal">🌟 Pessoal</option>
+            <option value="saúde">💚 Saúde</option>
+            <option value="estudos">📚 Estudos</option>
+            <option value="outros">🔮 Outros</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Progresso atual</label>
+          <input id="m-atual" type="number" class="field" placeholder="0" min="0">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Meta total</label>
+          <input id="m-total" type="number" class="field" placeholder="10" min="1">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Unidade</label>
+        <input id="m-unidade" class="field" placeholder="Ex: livros, dias, km, tarefas...">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Descrição</label>
+        <textarea id="m-desc" class="field" rows="2" placeholder="Detalhes sobre essa meta..." style="resize:none;"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px;">
+      <button onclick="closeMetaModal()" class="btn-ghost">Cancelar</button>
+      <button onclick="saveMeta()" id="save-meta-btn" class="btn-primary">
+        <span id="save-meta-txt">Salvar</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: PROGRESSO META ══ -->
+<div id="meta-progress-modal" class="modal-backdrop">
+  <div class="modal-box" style="max-width:360px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h3 class="font-display" style="font-size:16px;font-weight:800;" id="mp-title">Atualizar progresso</h3>
+      <button onclick="closeMetaProgressModal()" style="padding:6px;border:none;background:none;cursor:pointer;color:var(--muted);"><i data-lucide="x" style="width:18px;height:18px;"></i></button>
+    </div>
+    <input type="hidden" id="mp-id">
+    <div>
+      <label style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Progresso atual</label>
+      <input id="mp-valor" type="number" class="field" min="0">
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+      <button onclick="closeMetaProgressModal()" class="btn-ghost">Cancelar</button>
+      <button onclick="updateMetaProgress()" class="btn-primary">Atualizar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp }        from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+                                from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc,
+         query, orderBy, where, serverTimestamp, onSnapshot, getDocs }
+                                from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ── Firebase config ─────────────────────────────────────────────────────────
+const app = initializeApp({
+  apiKey:            "AIzaSyBkC8n5mzSPZnHwXf5d-jNdZvy-esPkD8Q",
+  authDomain:        "gen-lang-client-0237314662.firebaseapp.com",
+  projectId:         "gen-lang-client-0237314662",
+  storageBucket:     "gen-lang-client-0237314662.firebasestorage.app",
+  messagingSenderId: "279936452839",
+  appId:             "1:279936452839:web:8a7e6824724c49388eba42"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ── State ───────────────────────────────────────────────────────────────────
+let currentUser = null;
+let allTasks = [], allProjects = [], allMetas = [];
+let activeProject = 'all', activeCat = 'all', activeMetaTab = 'semana';
+let editingTaskId = null, editingProjectId = null, editingMetaId = null;
+let dragTaskId = null;
+let charts = {};
+let unsubTasks, unsubProjects, unsubMetas;
+
+// ── Auth ────────────────────────────────────────────────────────────────────
+window.loginWithGoogle = async function() {
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-error');
+  btn.disabled = true;
+  err.classList.add('hidden');
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    // permitir qualquer email (uso pessoal)
+  } catch(e) {
+    if (e.code !== 'auth/popup-closed-by-user') {
+      err.textContent = 'Erro ao fazer login: ' + e.message;
+      err.classList.remove('hidden');
+    }
+  }
+  btn.disabled = false;
+};
+
+window.logout = async function() {
+  [unsubTasks, unsubProjects, unsubMetas].forEach(u => u && u());
+  await signOut(auth);
+};
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    currentUser = { uid: user.uid, name: user.displayName || user.email, email: user.email, photo: user.photoURL };
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').classList.remove('hidden');
+    document.getElementById('sb-name').textContent = currentUser.name;
+    document.getElementById('sb-email').textContent = currentUser.email;
+    if (currentUser.photo) {
+      const av = document.getElementById('sb-avatar');
+      av.src = currentUser.photo; av.style.display = 'block';
+    }
+    initListeners();
+    lucide.createIcons();
+  } else {
+    currentUser = null;
+    document.getElementById('app-screen').classList.add('hidden');
+    document.getElementById('login-screen').style.display = 'flex';
+    lucide.createIcons();
+  }
+});
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+const esc = s => s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
+const fmtDate = ts => {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
+};
+const isOverdue = prazo => prazo && new Date(prazo+'T23:59:59') < new Date();
+
+const COLS = [
+  { id:'todo',   label:'A Fazer',    icon:'📥', color:'#8b8ba0' },
+  { id:'doing',  label:'Fazendo',    icon:'🔨', color:'#3b82f6' },
+  { id:'review', label:'Em Revisão', icon:'👀', color:'#f59e0b' },
+  { id:'done',   label:'Concluído',  icon:'✅', color:'#10b981' },
+];
+const CAT_ICONS = { trabalho:'💼', pessoal:'🌟', 'saúde':'💚', estudos:'📚', outros:'🔮' };
+const CAT_LABELS = { trabalho:'Trabalho', pessoal:'Pessoal', 'saúde':'Saúde', estudos:'Estudos', outros:'Outros' };
+const PRIO_ICON = { alta:'🔴', media:'🟡', baixa:'⚪' };
+const TIPO_LABEL = { task:'📋', bug:'🐛', feature:'✨', meta:'🎯' };
+const PERIODO_LABEL = { semana:'Semanal', mes:'Mensal', ano:'Anual' };
+
+function getUserPrefix() { return `users/${currentUser.uid}`; }
+
+// ── Listeners ───────────────────────────────────────────────────────────────
+function initListeners() {
+  const uid = currentUser.uid;
+  unsubProjects = onSnapshot(query(collection(db,`users/${uid}/projects`), orderBy('criado_em','asc')), snap => {
+    allProjects = snap.docs.map(d => ({id:d.id,...d.data()}));
+    renderProjectNav();
+    renderProjectTabs();
+    populateProjectSelect();
+  });
+  unsubTasks = onSnapshot(query(collection(db,`users/${uid}/tasks`), orderBy('criado_em','desc')), snap => {
+    allTasks = snap.docs.map(d => ({id:d.id,...d.data()}));
+    document.getElementById('tasks-loading').style.display = 'none';
+    document.getElementById('kanban-scroll').classList.remove('hidden');
+    applyFilters();
+    if (document.getElementById('view-graficos').classList.contains('hidden') === false) renderCharts();
+  });
+  unsubMetas = onSnapshot(query(collection(db,`users/${uid}/metas`), orderBy('criado_em','desc')), snap => {
+    allMetas = snap.docs.map(d => ({id:d.id,...d.data()}));
+    document.getElementById('metas-loading').style.display = 'none';
+    document.getElementById('metas-grid').style.display = 'grid';
+    document.getElementById('metas-grid').classList.remove('hidden');
+    renderMetas();
+  });
+}
+
+// ── PROJECTS ────────────────────────────────────────────────────────────────
+let selectedColor = '#6c63ff';
+
+window.selectColor = function(color) {
+  selectedColor = color;
+  document.getElementById('p-cor').value = color;
+  document.querySelectorAll('.color-btn').forEach(b => {
+    b.style.border = b.dataset.color === color ? `3px solid ${color}` : '3px solid transparent';
+  });
+};
+
+function renderProjectNav() {
+  const list = document.getElementById('project-nav-list');
+  list.innerHTML = `<div class="proj-pill ${activeProject==='all'?'active':''}" id="proj-all" onclick="filterByProject('all')">
+    <span class="proj-dot" style="background:#6c63ff;"></span> Todos
+  </div>`;
+  allProjects.forEach(p => {
+    list.innerHTML += `<div class="proj-pill ${activeProject===p.id?'active':''}" id="proj-nav-${p.id}" onclick="filterByProject('${p.id}')">
+      <span class="proj-dot" style="background:${p.cor||'#6c63ff'};"></span>
+      <span style="flex:1;">${esc(p.nome)}</span>
+      <button onclick="event.stopPropagation();deleteProject('${p.id}')" style="background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;padding:0;margin-left:4px;" title="Excluir">
+        <i data-lucide="x" style="width:12px;height:12px;"></i>
+      </button>
+    </div>`;
+  });
+
+  // Cat nav
+  const catList = document.getElementById('cat-nav-list');
+  catList.innerHTML = `<div class="proj-pill ${activeCat==='all'?'active':''}" onclick="filterByCat('all')">
+    <i data-lucide="grid" style="width:14px;height:14px;"></i> Todas
+  </div>`;
+  const cats = ['trabalho','pessoal','saúde','estudos','outros'];
+  cats.forEach(c => {
+    catList.innerHTML += `<div class="proj-pill ${activeCat===c?'active':''}" onclick="filterByCat('${c}')">
+      ${CAT_ICONS[c]} ${CAT_LABELS[c]}
+    </div>`;
+  });
+
+  lucide.createIcons();
+}
+
+function renderProjectTabs() {
+  const tabs = document.getElementById('project-tabs');
+  tabs.innerHTML = `
+    <button class="tab-pill ${activeProject==='all'?'active':''}" onclick="filterByProject('all')">Todos</button>
+    ${allProjects.map(p => `
+      <button class="tab-pill ${activeProject===p.id?'active':''}" onclick="filterByProject('${p.id}')" style="display:flex;align-items:center;gap:6px;">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.cor||'#6c63ff'};"></span>
+        ${esc(p.nome)}
+      </button>
+    `).join('')}
+  `;
+}
+
+function populateProjectSelect() {
+  const sel = document.getElementById('t-projeto');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Nenhum</option>' + allProjects.map(p => `<option value="${p.id}">${esc(p.nome)}</option>`).join('');
+  sel.value = cur;
+}
+
+window.openProjectModal = function() {
+  editingProjectId = null;
+  document.getElementById('proj-modal-title').textContent = 'Novo Projeto';
+  document.getElementById('save-proj-txt').textContent = 'Criar Projeto';
+  document.getElementById('p-nome').value = '';
+  document.getElementById('p-desc').value = '';
+  document.getElementById('p-cat').value = 'trabalho';
+  selectColor('#6c63ff');
+  document.getElementById('project-modal').classList.add('open');
+};
+window.closeProjectModal = () => document.getElementById('project-modal').classList.remove('open');
+
+window.saveProject = async function() {
+  const nome = document.getElementById('p-nome').value.trim();
+  if (!nome) return alert('Dá um nome pro projeto!');
+  const btn = document.getElementById('save-proj-btn'); btn.disabled = true;
+  const data = { nome, cor: document.getElementById('p-cor').value, descricao: document.getElementById('p-desc').value.trim(), categoria: document.getElementById('p-cat').value };
+  try {
+    if (editingProjectId) {
+      await updateDoc(doc(db,`users/${currentUser.uid}/projects`,editingProjectId), { ...data, atualizado_em: serverTimestamp() });
+    } else {
+      await addDoc(collection(db,`users/${currentUser.uid}/projects`), { ...data, criado_em: serverTimestamp() });
+    }
+    closeProjectModal();
+  } catch(e) { alert('Erro: '+e.message); }
+  btn.disabled = false;
+};
+
+window.deleteProject = async function(id) {
+  if (!confirm('Excluir este projeto? As tarefas ficarão sem projeto.')) return;
+  await deleteDoc(doc(db,`users/${currentUser.uid}/projects`,id));
+  if (activeProject === id) filterByProject('all');
+};
+
+// ── TASKS ───────────────────────────────────────────────────────────────────
+window.filterByProject = function(projId) {
+  activeProject = projId;
+  renderProjectTabs();
+  renderProjectNav();
+  applyFilters();
+  // Update title
+  if (projId === 'all') {
+    document.getElementById('task-view-title').textContent = 'Todas as Tarefas';
+    document.getElementById('task-view-sub').textContent = 'Gerencie e organize suas entregas';
+  } else {
+    const p = allProjects.find(x => x.id === projId);
+    document.getElementById('task-view-title').textContent = p ? p.nome : 'Projeto';
+    document.getElementById('task-view-sub').textContent = p?.descricao || '';
+  }
+};
+
+window.filterByCat = function(cat) {
+  activeCat = cat;
+  renderProjectNav();
+  applyFilters();
+};
+
+// Cat filter chips
+function renderCatChips() {
+  const area = document.getElementById('cat-filter-chips');
+  const cats = ['trabalho','pessoal','saúde','estudos','outros'];
+  area.innerHTML = cats.map(c => `
+    <button class="filter-chip ${activeCat===c?'active':''}" onclick="filterByCat('${c}')">
+      ${CAT_ICONS[c]} ${CAT_LABELS[c]}
+    </button>
+  `).join('');
+}
+
+window.applyFilters = function() {
+  renderCatChips();
+  const prio = document.getElementById('prio-filter')?.value || '';
+  let tasks = allTasks;
+  if (activeProject !== 'all') tasks = tasks.filter(t => t.projeto === activeProject);
+  if (activeCat !== 'all') tasks = tasks.filter(t => t.categoria === activeCat);
+  if (prio) tasks = tasks.filter(t => t.prioridade === prio);
+  renderKanban(tasks);
+};
+
+function renderKanban(tasks) {
+  const board = document.getElementById('kanban-scroll');
+  board.innerHTML = COLS.map(col => {
+    const colTasks = tasks.filter(t => t.status === col.id);
+    return `<div class="kanban-col-wrap">
+      <div style="background:${col.color}14;border:1px solid ${col.color}30;border-radius:12px;padding:14px;height:100%;min-height:300px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid ${col.color}20;">
+          <span class="font-display" style="font-size:12px;font-weight:800;color:#333;display:flex;align-items:center;gap:6px;">
+            ${col.icon} ${col.label}
+          </span>
+          <span style="background:${col.color}20;color:${col.color};font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;">${colTasks.length}</span>
+        </div>
+        <div class="kanban-col" style="display:flex;flex-direction:column;gap:10px;min-height:60px;"
+          ondragover="kanbanDragOver(event)"
+          ondragleave="kanbanDragLeave(event)"
+          ondrop="kanbanDrop(event,'${col.id}')">
+          ${colTasks.map(t => renderTaskCard(t)).join('')}
+          <button onclick="openTaskModalCol('${col.id}')" style="width:100%;padding:8px;border:1.5px dashed #d1d1e0;border-radius:10px;background:none;font-size:12px;color:#aaa;cursor:pointer;transition:all .15s;"
+            onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';"
+            onmouseout="this.style.borderColor='#d1d1e0';this.style.color='#aaa';">
+            + Adicionar
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+function renderTaskCard(t) {
+  const proj = allProjects.find(p => p.id === t.projeto);
+  const overdue = isOverdue(t.prazo) && t.status !== 'done';
+  return `<div class="task-card p-3 ${overdue?'overdue':''}"
+    draggable="true"
+    ondragstart="kanbanDragStart(event,'${t.id}')"
+    ondragend="kanbanDragEnd(event)">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
+      <p style="font-size:13px;font-weight:600;line-height:1.3;flex:1;">${esc(t.titulo)}</p>
+      <div style="display:flex;gap:2px;flex-shrink:0;">
+        <button onclick="editTask('${t.id}')" style="padding:4px;border:none;background:none;cursor:pointer;color:#ccc;" title="Editar">
+          <i data-lucide="pencil" style="width:12px;height:12px;"></i>
+        </button>
+        <button onclick="deleteTask('${t.id}','${esc(t.titulo)}')" style="padding:4px;border:none;background:none;cursor:pointer;color:#ccc;" title="Excluir">
+          <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
+        </button>
+      </div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;">
+      <span class="badge cat-${t.categoria||'outros'}">${CAT_ICONS[t.categoria||'outros']} ${CAT_LABELS[t.categoria||'outros']}</span>
+      ${proj?`<span class="badge" style="background:${proj.cor}20;color:${proj.cor};">● ${esc(proj.nome)}</span>`:''}
+      <span class="badge tipo-${t.tipo||'task'}">${TIPO_LABEL[t.tipo||'task']} ${t.tipo||'task'}</span>
+    </div>
+    ${t.descricao?`<p style="font-size:11px;color:#888;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${esc(t.descricao)}</p>`:''}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid #f0f0f5;">
+      <span class="prio-${t.prioridade||'media'}" style="font-size:11px;font-weight:600;">${PRIO_ICON[t.prioridade||'media']} ${t.prioridade||'média'}</span>
+      ${t.prazo?`<span style="font-size:10px;color:${overdue?'#ef4444':'#888'};">📅 ${t.prazo}${overdue?' (atrasada!)':''}</span>`:''}
+    </div>
+    ${t.responsavel?`<p style="font-size:10px;color:#aaa;margin-top:4px;">👤 ${esc(t.responsavel)}</p>`:''}
+  </div>`;
+}
+
+// ── Task Modal ───────────────────────────────────────────────────────────────
+window.openTaskModal = function() {
+  editingTaskId = null;
+  document.getElementById('task-modal-title').textContent = 'Nova Tarefa';
+  document.getElementById('save-task-txt').textContent = 'Salvar';
+  ['t-titulo','t-responsavel','t-prazo','t-desc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('t-status').value = 'todo';
+  document.getElementById('t-tipo').value = 'task';
+  document.getElementById('t-prioridade').value = 'media';
+  document.getElementById('t-categoria').value = 'trabalho';
+  document.getElementById('t-projeto').value = activeProject !== 'all' ? activeProject : '';
+  document.getElementById('task-modal').classList.add('open');
+};
+window.openTaskModalCol = function(colId) { openTaskModal(); document.getElementById('t-status').value = colId; };
+window.closeTaskModal = () => document.getElementById('task-modal').classList.remove('open');
+
+window.editTask = function(id) {
+  const t = allTasks.find(x => x.id === id); if (!t) return;
+  editingTaskId = id;
+  document.getElementById('task-modal-title').textContent = 'Editar Tarefa';
+  document.getElementById('save-task-txt').textContent = 'Atualizar';
+  document.getElementById('t-titulo').value      = t.titulo      || '';
+  document.getElementById('t-projeto').value     = t.projeto     || '';
+  document.getElementById('t-categoria').value   = t.categoria   || 'trabalho';
+  document.getElementById('t-tipo').value        = t.tipo        || 'task';
+  document.getElementById('t-prioridade').value  = t.prioridade  || 'media';
+  document.getElementById('t-status').value      = t.status      || 'todo';
+  document.getElementById('t-prazo').value       = t.prazo       || '';
+  document.getElementById('t-responsavel').value = t.responsavel || '';
+  document.getElementById('t-desc').value        = t.descricao   || '';
+  document.getElementById('task-modal').classList.add('open');
+};
+
+window.saveTask = async function() {
+  const titulo = document.getElementById('t-titulo').value.trim();
+  if (!titulo) return alert('Coloca um título aí!');
+  const btn = document.getElementById('save-task-btn'); btn.disabled = true;
+  const data = {
+    titulo, projeto: document.getElementById('t-projeto').value,
+    categoria: document.getElementById('t-categoria').value,
+    tipo: document.getElementById('t-tipo').value,
+    prioridade: document.getElementById('t-prioridade').value,
+    status: document.getElementById('t-status').value,
+    prazo: document.getElementById('t-prazo').value,
+    responsavel: document.getElementById('t-responsavel').value.trim(),
+    descricao: document.getElementById('t-desc').value.trim(),
+  };
+  try {
+    const uid = currentUser.uid;
+    if (editingTaskId) {
+      await updateDoc(doc(db,`users/${uid}/tasks`,editingTaskId), { ...data, atualizado_em: serverTimestamp() });
+    } else {
+      await addDoc(collection(db,`users/${uid}/tasks`), { ...data, criado_em: serverTimestamp() });
+    }
+    closeTaskModal();
+  } catch(e) { alert('Erro: '+e.message); }
+  btn.disabled = false;
+};
+
+window.deleteTask = async function(id, titulo) {
+  if (!confirm(`Excluir "${titulo}"?`)) return;
+  await deleteDoc(doc(db,`users/${currentUser.uid}/tasks`,id));
+};
+
+// ── Drag & Drop ─────────────────────────────────────────────────────────────
+window.kanbanDragStart = (e, id) => {
+  dragTaskId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => e.target.closest('.task-card')?.classList.add('dragging'), 0);
+};
+window.kanbanDragEnd = (e) => {
+  e.target.closest('.task-card')?.classList.remove('dragging');
+  document.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('drag-over'));
+};
+window.kanbanDragOver = (e) => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
+window.kanbanDragLeave = (e) => { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('drag-over'); };
+window.kanbanDrop = async (e, colId) => {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const id = dragTaskId; dragTaskId = null;
+  if (!id) return;
+  const task = allTasks.find(t => t.id === id);
+  if (!task || task.status === colId) return;
+  await updateDoc(doc(db,`users/${currentUser.uid}/tasks`,id), { status: colId, atualizado_em: serverTimestamp() });
+};
+
+// ── METAS ────────────────────────────────────────────────────────────────────
+window.switchMetaTab = function(tab) {
+  activeMetaTab = tab;
+  ['semana','mes','ano'].forEach(t => {
+    const el = document.getElementById('mt-'+t);
+    el?.classList.toggle('active', t === tab);
+  });
+  renderMetas();
+};
+
+function renderMetas() {
+  const grid = document.getElementById('metas-grid');
+  const filtered = allMetas.filter(m => m.periodo === activeMetaTab);
+  if (!filtered.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--muted);">
+      <div style="font-size:40px;margin-bottom:12px;">🎯</div>
+      <p style="font-weight:600;">Nenhuma meta ${PERIODO_LABEL[activeMetaTab].toLowerCase()} ainda</p>
+      <p style="font-size:13px;margin-top:4px;">Cria a sua primeira meta!</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = filtered.map(m => {
+    const pct = m.total > 0 ? Math.min(100, Math.round((m.atual||0)/m.total*100)) : 0;
+    const barColor = pct >= 100 ? '#10b981' : pct >= 50 ? '#3b82f6' : '#6c63ff';
+    return `<div class="meta-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;">
+        <div style="flex:1;">
+          <span class="badge cat-${m.categoria||'outros'}" style="margin-bottom:6px;display:inline-flex;">${CAT_ICONS[m.categoria||'outros']} ${CAT_LABELS[m.categoria||'outros']}</span>
+          <p style="font-weight:700;font-size:14px;line-height:1.3;">${esc(m.titulo)}</p>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <button onclick="openMetaProgressModal('${m.id}')" style="padding:5px;border:1px solid var(--border);background:white;border-radius:8px;cursor:pointer;" title="Atualizar progresso">
+            <i data-lucide="trending-up" style="width:13px;height:13px;color:var(--accent);"></i>
+          </button>
+          <button onclick="editMeta('${m.id}')" style="padding:5px;border:1px solid var(--border);background:white;border-radius:8px;cursor:pointer;">
+            <i data-lucide="pencil" style="width:13px;height:13px;color:#aaa;"></i>
+          </button>
+          <button onclick="deleteMeta('${m.id}','${esc(m.titulo)}')" style="padding:5px;border:1px solid var(--border);background:white;border-radius:8px;cursor:pointer;">
+            <i data-lucide="trash-2" style="width:13px;height:13px;color:#aaa;"></i>
+          </button>
+        </div>
+      </div>
+      ${m.descricao?`<p style="font-size:12px;color:var(--muted);margin-bottom:12px;">${esc(m.descricao)}</p>`:''}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:22px;font-weight:800;font-family:'Syne',sans-serif;color:${barColor};">${pct}%</span>
+        <span style="font-size:12px;color:var(--muted);">${m.atual||0} / ${m.total} ${esc(m.unidade||'')}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${pct}%;background:${barColor};"></div>
+      </div>
+      <p style="font-size:10px;color:#ccc;margin-top:10px;">Criado em ${fmtDate(m.criado_em)}</p>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+window.openMetaModal = function() {
+  editingMetaId = null;
+  document.getElementById('meta-modal-title').textContent = 'Nova Meta';
+  document.getElementById('save-meta-txt').textContent = 'Salvar';
+  ['m-titulo','m-desc','m-unidade'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('m-atual').value = '0';
+  document.getElementById('m-total').value = '10';
+  document.getElementById('m-periodo').value = activeMetaTab;
+  document.getElementById('m-categoria').value = 'pessoal';
+  document.getElementById('meta-modal').classList.add('open');
+};
+window.closeMetaModal = () => document.getElementById('meta-modal').classList.remove('open');
+
+window.editMeta = function(id) {
+  const m = allMetas.find(x => x.id === id); if (!m) return;
+  editingMetaId = id;
+  document.getElementById('meta-modal-title').textContent = 'Editar Meta';
+  document.getElementById('save-meta-txt').textContent = 'Atualizar';
+  document.getElementById('m-titulo').value    = m.titulo    || '';
+  document.getElementById('m-periodo').value   = m.periodo   || 'semana';
+  document.getElementById('m-categoria').value = m.categoria || 'pessoal';
+  document.getElementById('m-atual').value     = m.atual     || 0;
+  document.getElementById('m-total').value     = m.total     || 10;
+  document.getElementById('m-unidade').value   = m.unidade   || '';
+  document.getElementById('m-desc').value      = m.descricao || '';
+  document.getElementById('meta-modal').classList.add('open');
+};
+
+window.saveMeta = async function() {
+  const titulo = document.getElementById('m-titulo').value.trim();
+  if (!titulo) return alert('Dá um nome pra meta!');
+  const btn = document.getElementById('save-meta-btn'); btn.disabled = true;
+  const data = {
+    titulo,
+    periodo: document.getElementById('m-periodo').value,
+    categoria: document.getElementById('m-categoria').value,
+    atual: parseFloat(document.getElementById('m-atual').value)||0,
+    total: parseFloat(document.getElementById('m-total').value)||10,
+    unidade: document.getElementById('m-unidade').value.trim(),
+    descricao: document.getElementById('m-desc').value.trim(),
+  };
+  try {
+    const uid = currentUser.uid;
+    if (editingMetaId) {
+      await updateDoc(doc(db,`users/${uid}/metas`,editingMetaId), { ...data, atualizado_em: serverTimestamp() });
+    } else {
+      await addDoc(collection(db,`users/${uid}/metas`), { ...data, criado_em: serverTimestamp() });
+    }
+    closeMetaModal();
+  } catch(e) { alert('Erro: '+e.message); }
+  btn.disabled = false;
+};
+
+window.deleteMeta = async function(id, titulo) {
+  if (!confirm(`Excluir meta "${titulo}"?`)) return;
+  await deleteDoc(doc(db,`users/${currentUser.uid}/metas`,id));
+};
+
+window.openMetaProgressModal = function(id) {
+  const m = allMetas.find(x => x.id === id); if (!m) return;
+  document.getElementById('mp-id').value = id;
+  document.getElementById('mp-title').textContent = esc(m.titulo);
+  document.getElementById('mp-valor').value = m.atual || 0;
+  document.getElementById('meta-progress-modal').classList.add('open');
+};
+window.closeMetaProgressModal = () => document.getElementById('meta-progress-modal').classList.remove('open');
+
+window.updateMetaProgress = async function() {
+  const id = document.getElementById('mp-id').value;
+  const valor = parseFloat(document.getElementById('mp-valor').value)||0;
+  await updateDoc(doc(db,`users/${currentUser.uid}/metas`,id), { atual: valor, atualizado_em: serverTimestamp() });
+  closeMetaProgressModal();
+};
+
+// ── GRÁFICOS ─────────────────────────────────────────────────────────────────
+function renderCharts() {
+  // Stat cards
+  const done = allTasks.filter(t => t.status==='done').length;
+  const doing = allTasks.filter(t => t.status==='doing').length;
+  const overdue = allTasks.filter(t => isOverdue(t.prazo) && t.status!=='done').length;
+  const total = allTasks.length;
+
+  document.getElementById('stat-cards').innerHTML = [
+    { label:'Total de Tarefas', value:total, icon:'📋', color:'#6c63ff' },
+    { label:'Concluídas', value:done, icon:'✅', color:'#10b981' },
+    { label:'Em andamento', value:doing, icon:'🔨', color:'#3b82f6' },
+    { label:'Atrasadas', value:overdue, icon:'⚠️', color:'#ef4444' },
+    { label:'Taxa de entrega', value:(total?Math.round(done/total*100):0)+'%', icon:'🎯', color:'#f59e0b' },
+    { label:'Metas ativas', value:allMetas.length, icon:'🚀', color:'#ec4899' },
+  ].map(s => `<div class="stat-card">
+    <div style="font-size:22px;margin-bottom:6px;">${s.icon}</div>
+    <div class="font-display" style="font-size:26px;font-weight:800;color:${s.color};">${s.value}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:2px;">${s.label}</div>
+  </div>`).join('');
+
+  // Destroy old charts
+  Object.values(charts).forEach(c => c.destroy());
+  charts = {};
+
+  const colores = ['#6c63ff','#3b82f6','#10b981','#f59e0b'];
+
+  // Status chart
+  const statusCounts = COLS.map(c => allTasks.filter(t => t.status===c.id).length);
+  charts.status = new Chart(document.getElementById('chart-status'), {
+    type: 'doughnut',
+    data: {
+      labels: COLS.map(c => c.icon+' '+c.label),
+      datasets: [{ data: statusCounts, backgroundColor: ['#8b8ba030','#3b82f630','#f59e0b30','#10b98130'].map(c=>c), borderColor: ['#8b8ba0','#3b82f6','#f59e0b','#10b981'], borderWidth: 2 }]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'bottom', labels:{ font:{family:'DM Sans',size:11} } } } }
+  });
+
+  // Cat chart
+  const cats = ['trabalho','pessoal','saúde','estudos','outros'];
+  charts.cat = new Chart(document.getElementById('chart-cat'), {
+    type: 'bar',
+    data: {
+      labels: cats.map(c => CAT_ICONS[c]+' '+CAT_LABELS[c]),
+      datasets: [{ label:'Tarefas', data: cats.map(c => allTasks.filter(t=>t.categoria===c).length), backgroundColor: ['#3b82f640','#f59e0b40','#10b98140','#ec489940','#6c63ff40'], borderColor: ['#3b82f6','#f59e0b','#10b981','#ec4899','#6c63ff'], borderWidth: 2, borderRadius: 8 }]
+    },
+    options: { responsive:true, plugins:{ legend:{display:false} }, scales:{ y:{beginAtZero:true,grid:{color:'#f0f0f5'}}, x:{grid:{display:false}} } }
+  });
+
+  // Timeline — concluídas por mês
+  const monthMap = {};
+  allTasks.filter(t => t.status==='done' && t.atualizado_em).forEach(t => {
+    const d = t.atualizado_em.toDate ? t.atualizado_em.toDate() : new Date(t.atualizado_em);
+    const key = `${d.getMonth()+1}/${d.getFullYear()}`;
+    monthMap[key] = (monthMap[key]||0) + 1;
+  });
+  const months = Object.keys(monthMap).sort((a,b) => {
+    const [ma,ya] = a.split('/'); const [mb,yb] = b.split('/');
+    return new Date(ya,ma-1) - new Date(yb,mb-1);
+  }).slice(-6);
+  charts.timeline = new Chart(document.getElementById('chart-timeline'), {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [{ label:'Concluídas', data: months.map(m=>monthMap[m]||0), borderColor:'#6c63ff', backgroundColor:'#6c63ff15', tension:.4, fill:true, pointBackgroundColor:'#6c63ff', pointRadius:5 }]
+    },
+    options: { responsive:true, plugins:{ legend:{display:false} }, scales:{ y:{beginAtZero:true,grid:{color:'#f0f0f5'}}, x:{grid:{display:false}} } }
+  });
+
+  // Tempo médio por etapa (estimativa por status)
+  const tempoData = COLS.map(col => {
+    const colTasks = allTasks.filter(t => t.status === col.id && t.criado_em && t.atualizado_em);
+    if (!colTasks.length) return 0;
+    const avg = colTasks.reduce((acc,t) => {
+      const c = t.criado_em.toDate ? t.criado_em.toDate() : new Date(t.criado_em);
+      const a = t.atualizado_em.toDate ? t.atualizado_em.toDate() : new Date(t.atualizado_em);
+      return acc + Math.max(0,(a-c)/(1000*60*60*24));
+    },0) / colTasks.length;
+    return Math.round(avg*10)/10;
+  });
+  charts.tempo = new Chart(document.getElementById('chart-tempo'), {
+    type: 'bar',
+    data: {
+      labels: COLS.map(c => c.icon+' '+c.label),
+      datasets: [{ label:'Dias', data: tempoData, backgroundColor: colores.map(c=>c+'40'), borderColor: colores, borderWidth: 2, borderRadius: 8 }]
+    },
+    options: { responsive:true, plugins:{ legend:{display:false} }, scales:{ y:{beginAtZero:true,title:{display:true,text:'dias',font:{size:11}},grid:{color:'#f0f0f5'}}, x:{grid:{display:false}} } }
+  });
+
+  // Por projeto
+  const projData = allProjects.map(p => allTasks.filter(t=>t.projeto===p.id).length);
+  charts.proj = new Chart(document.getElementById('chart-proj'), {
+    type: 'doughnut',
+    data: {
+      labels: allProjects.map(p => p.nome),
+      datasets: [{ data: projData.length ? projData : [1], backgroundColor: allProjects.map(p => (p.cor||'#6c63ff')+'40'), borderColor: allProjects.map(p => p.cor||'#6c63ff'), borderWidth: 2 }]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'bottom', labels:{ font:{family:'DM Sans',size:11} } } } }
+  });
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+window.switchView = function(view) {
+  ['tasks','metas','graficos'].forEach(v => {
+    document.getElementById('view-'+v).classList.add('hidden');
+    document.getElementById('nav-'+v)?.classList.remove('active');
+  });
+  document.getElementById('view-'+view).classList.remove('hidden');
+  document.getElementById('nav-'+view)?.classList.add('active');
+  if (view === 'graficos') renderCharts();
+  lucide.createIcons();
+};
+
+// ── Close modals on backdrop ──────────────────────────────────────────────────
+['task-modal','project-modal','meta-modal','meta-progress-modal'].forEach(id =>
+  document.getElementById(id)?.addEventListener('click', e => {
+    if (e.target===e.currentTarget) e.currentTarget.classList.remove('open');
+  })
+);
+
+lucide.createIcons();
+</script>
+</body>
+</html>
